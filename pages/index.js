@@ -1,10 +1,12 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   const googleLoginLink = `https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?response_type=code&redirect_uri=${process.env.NEXT_PUBLIC_GOOGLE_CALLBACK_URL}&scope=email%20profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}&service=lso&o2v=2&theme=mn&flowName=GeneralOAuthFlow`
+  const [playlist, setPlaylist] = useState([]);
   let isLogin
   useEffect(() => {
     isLogin = document.cookie.includes('accessToken')
@@ -21,7 +23,18 @@ export default function Home() {
             },
           });
         const data = await response.json();
-        console.log(data);
+        const requiredProp = []
+        data.map((playlist) => {
+          playlist.map((item) => {
+            requiredProp.push({
+              id: item.resourceId.videoId,
+              title: item.title,
+              thumbnail: item.thumbnails.default,
+            })
+          })
+        });
+
+        setPlaylist(requiredProp)
       } catch (error) {
         console.error('An error occurred:', error);
       }
@@ -47,6 +60,12 @@ export default function Home() {
           <Link href={googleLoginLink}  > Google Login
           </Link>
         }
+        {playlist.map(song => (
+          <li key={song.id}>
+            <img src={song.thumbnail.url} alt={song.title} />
+            <strong>{song.title}</strong> - {song.id}
+          </li>
+        ))}
       </main>
     </div>
   )
